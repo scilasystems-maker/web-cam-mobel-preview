@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cocina interactiva Cam-Mobel</title>
+<meta name="description" content="Recorre por dentro una cocina real de Cam-Mobel y mírala en maqueta 3D. Cocinas a medida y estudio de interiorismo en Lorca (Murcia).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Plano: portada con la foto real y selector de piezas; al bajar, la foto se abre y la cámara recorre la cocina en 3D hasta acabar en maqueta blanca. */
+  --ink:#100f0d;
+  --paper:#f3efe8;
+  --clay:#ebe7e0;
+  --led:#f2b66d;
+  --mute:#9b938a;
+  --line:rgba(243,239,232,.14);
+  --text-2:rgba(243,239,232,.74);
+  --display:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  --body:"Manrope","Segoe UI",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--ink);color:var(--paper);font:400 16px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--led);outline-offset:3px;border-radius:4px}
+
+/* ---------- Cabecera ---------- */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.test-badge{position:fixed;z-index:90;top:16px;left:50%;transform:translateX(-50%);margin:0;max-width:calc(100% - 24px);padding:8px 15px;border-radius:999px;background:rgba(16,15,13,.74);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(242,182,109,.4);color:rgba(243,239,232,.84);font:500 12px/1.4 var(--body);text-align:center;pointer-events:none}
+.test-badge b{color:var(--led);font-weight:700;white-space:nowrap}
+.test-badge .tb-short{display:none}
+.btn{display:inline-flex;align-items:center;gap:10px;border:0;cursor:pointer;text-decoration:none;border-radius:999px;font:600 14px/1 var(--body);padding:14px 20px;transition:background .2s,box-shadow .2s}
+.btn-led{background:var(--led);color:#1d1308}
+.btn-led:hover{background:#f7c78a}
+.btn-ghost{background:transparent;color:var(--paper);box-shadow:inset 0 0 0 1px var(--line)}
+.btn-ghost:hover{box-shadow:inset 0 0 0 1px rgba(243,239,232,.4)}
+.btn svg{width:18px;height:18px;flex:none}
+
+/* ---------- Portada ---------- */
+.hero{position:relative;display:grid;grid-template-columns:auto minmax(300px,1fr);gap:clamp(36px,5vw,96px);align-items:center;padding:clamp(48px,8vh,88px) clamp(16px,3vw,40px)}
+.stage{position:relative;width:min(calc(100vh - 140px),58vw);min-width:320px;aspect-ratio:1/1}
+@supports (height:100dvh){.stage{width:min(calc(100dvh - 140px),58vw)}}
+.photo-wrap{position:absolute;inset:0;overflow:hidden;border-radius:3px;background:#222;touch-action:none}
+.photo-wrap.hot{cursor:pointer}
+.photo-wrap img{display:block;width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none;pointer-events:none}
+#zones{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#zones .hl.fresh{animation:hlIn .45s ease-out}
+@keyframes hlIn{from{opacity:0}to{opacity:1}}
+.photo-hint{position:absolute;right:14px;bottom:14px;display:flex;align-items:center;gap:9px;padding:9px 14px;border-radius:999px;background:rgba(16,15,13,.66);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:12.5px;color:var(--text-2);pointer-events:none}
+.photo-hint svg{width:15px;height:15px;color:var(--led)}
+
+.panel{display:flex;flex-direction:column;gap:20px;max-width:520px}
+.eyebrow{margin:0;font:600 11.5px/1.4 var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.title{margin:-6px 0 0;font:400 clamp(38px,3.9vw,58px)/1.02 var(--display);letter-spacing:-.01em;text-wrap:balance}
+.title em{color:var(--led)}
+.lede{margin:-4px 0 0;max-width:46ch;color:var(--text-2);font-size:15.5px}
+.readout{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:20px}
+.num-row{display:flex;align-items:flex-end;gap:14px}
+.num-label{font:600 11.5px/1 var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--mute);padding-bottom:16px;writing-mode:vertical-rl;transform:rotate(180deg)}
+.num{font:200 clamp(80px,7.6vw,116px)/.8 var(--body);letter-spacing:-.05em;font-variant-numeric:tabular-nums;display:inline-block}
+.num.tick{animation:tick .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes tick{from{transform:translateY(14px);opacity:.15}to{transform:none;opacity:1}}
+.of{font:300 22px/1 var(--body);color:var(--mute);font-variant-numeric:tabular-nums;padding-bottom:6px}
+.readout h2{margin:6px 0 0;font:400 34px/1.05 var(--display);text-wrap:balance}
+.desc{margin:0;color:var(--text-2);max-width:46ch;min-height:4.8em;font-size:15px}
+.specs{margin:4px 0 0;display:grid;grid-template-columns:auto 1fr;border-top:1px solid var(--line)}
+.specs dt,.specs dd{margin:0;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.specs dt{color:var(--mute);font:600 11px/1.9 var(--body);letter-spacing:.16em;text-transform:uppercase;padding-right:22px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:8px}
+.rail{display:grid;grid-template-columns:repeat(10,1fr);border-top:1px solid var(--line)}
+.rail button{position:relative;background:none;border:0;padding:12px 0 2px;cursor:pointer;font:500 12px/1 var(--body);font-variant-numeric:tabular-nums;color:var(--mute);text-align:left;transition:color .2s}
+.rail button::before{content:"";position:absolute;left:0;top:-1px;width:1px;height:7px;background:rgba(243,239,232,.35)}
+.rail button::after{content:"";position:absolute;left:0;right:6px;top:-1px;height:2px;background:var(--led);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.rail button:hover{color:var(--paper)}
+.rail button[aria-current="true"]{color:var(--led)}
+.rail button[aria-current="true"]::after{transform:scaleX(1)}
+.leader{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.leader path{fill:none;stroke:var(--led);stroke-width:1;opacity:.9}
+.leader .a,.leader .e{fill:var(--led)}
+.leader .ring{fill:none;stroke:var(--led);stroke-width:1;transform-box:fill-box;transform-origin:center;animation:ring 1.8s ease-out infinite}
+@keyframes ring{from{transform:scale(.4);opacity:.9}to{transform:scale(1.6);opacity:0}}
+
+
+/* ---------- Recorrido ---------- */
+.walk{position:relative;height:1020vh}
+.walk-stage{position:sticky;top:0;height:100vh;overflow:hidden;background:#15130f}
+@supports (height:100dvh){.walk-stage{height:100dvh}}
+.walk-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.walk-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 58%;transform-origin:42% 62%;will-change:transform,opacity;pointer-events:none}
+.walk-shade{position:absolute;inset:0;background:linear-gradient(rgba(10,9,8,.42),transparent 18%,transparent 55%,rgba(10,9,8,.55));pointer-events:none;transition:opacity .3s}
+.walk.clay .walk-shade{opacity:0}
+.walk-top{position:absolute;top:20px;left:clamp(16px,3vw,40px);right:clamp(16px,3vw,40px);display:flex;justify-content:space-between;align-items:center;gap:12px;color:#f3efe8;transition:color .4s;pointer-events:none}
+.walk.clay .walk-top{color:#1d1a16}
+.walk-top b{font:600 13px/1 var(--body);letter-spacing:.34em}
+.walk-count{font:300 15px/1 var(--body);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.walk-count strong{font-weight:600}
+.walk-right{display:flex;align-items:center;gap:18px}
+.walk-cta{pointer-events:auto;padding:11px 16px;font-size:13px}
+.walk-hint{position:absolute;left:50%;bottom:82px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;font:600 11.5px/1 var(--body);letter-spacing:.2em;text-transform:uppercase;color:#f3efe8;pointer-events:none;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.walk-hint i{width:22px;height:34px;border:2px solid rgba(243,239,232,.75);border-radius:12px;position:relative}
+.walk-hint i::after{content:"";position:absolute;left:50%;top:6px;width:4px;height:7px;margin-left:-2px;border-radius:2px;background:var(--led);animation:wheel 1.6s infinite}
+@keyframes wheel{0%{transform:translateY(0);opacity:1}80%{transform:translateY(10px);opacity:0}100%{opacity:0}}
+.walk-card{position:absolute;left:clamp(16px,3vw,40px);bottom:clamp(84px,11vh,112px);width:min(400px,calc(100% - 32px));display:grid;gap:8px;padding:20px 22px 22px;border-radius:14px;background:rgba(250,248,244,.9);color:#1d1a16;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 24px 50px -28px rgba(0,0,0,.6);will-change:opacity,transform}
+.walk-card .k{font:600 11px/1.3 var(--body);letter-spacing:.18em;text-transform:uppercase;color:rgba(29,26,22,.55)}
+.walk-card h3{margin:0;font:400 30px/1.05 var(--display);text-wrap:balance}
+.walk-card p{margin:0;font-size:14.5px;line-height:1.55;color:rgba(29,26,22,.74)}
+.walk-card .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.walk-card .chips span{font:500 12px/1 var(--body);padding:7px 10px;border-radius:999px;background:rgba(29,26,22,.07)}
+.walk-card .btn{justify-self:start;margin-top:8px;padding:12px 18px;font-size:13.5px}
+.walk-nav{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:2px;padding:6px;border-radius:999px;background:rgba(16,15,13,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .4s}
+.walk.clay .walk-nav{background:rgba(29,26,22,.08)}
+.walk-nav button{border:0;background:none;cursor:pointer;padding:8px 11px;border-radius:999px;font:500 12px/1 var(--body);color:rgba(243,239,232,.62);white-space:nowrap;transition:background .2s,color .2s}
+.walk.clay .walk-nav button{color:rgba(29,26,22,.6)}
+.walk-nav button:hover{color:#fff}
+.walk.clay .walk-nav button:hover{color:#1d1a16}
+.walk-nav button[aria-current="true"]{background:var(--led);color:#1d1308}
+.walk-fallback{position:absolute;inset:0;display:none}
+.walk.nogl .walk-photo{opacity:1!important;transform:none!important}
+
+/* ---------- Secciones ---------- */
+.band{padding:clamp(56px,8vw,104px) clamp(16px,3vw,40px);border-top:1px solid var(--line)}
+.wrap{max-width:1240px;margin:0 auto}
+.process-head{display:grid;grid-template-columns:minmax(260px,1fr) 1.1fr;gap:clamp(24px,5vw,80px);align-items:end}
+.process-head .eyebrow{grid-column:1/-1;margin-bottom:-8px}
+.process-head h2,.cta h2{margin:0;font:400 clamp(34px,4vw,56px)/1.03 var(--display);text-wrap:balance}
+.process-head p{margin:0;color:var(--text-2);max-width:46ch}
+.flow{position:relative;margin-top:clamp(56px,8vw,104px)}
+.cota{position:absolute;left:0;right:0;top:0;height:1px;background:var(--line)}
+.cota-fill{position:absolute;left:0;top:0;height:1px;width:calc(var(--p,0)*100%);background:linear-gradient(90deg,rgba(242,182,109,.2),var(--led));box-shadow:0 0 12px rgba(242,182,109,.55)}
+.cota-fill::after{content:"";position:absolute;right:-5px;top:-4.5px;width:10px;height:10px;border-radius:50%;background:#ffd9a8;box-shadow:0 0 16px 4px rgba(242,182,109,.75)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,3.4vw,56px);list-style:none;margin:0;padding:0}
+.step{position:relative;padding-top:40px;display:grid;gap:12px;align-content:start;transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
+.step .tick{position:absolute;top:-7px;left:0;width:14px;height:14px;border-radius:50%;background:var(--ink);box-shadow:inset 0 0 0 1px rgba(243,239,232,.35);transition:background .5s,box-shadow .5s}
+.step-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.step .n{font:200 clamp(88px,9vw,140px)/.82 var(--body);letter-spacing:-.05em;font-variant-numeric:tabular-nums;color:transparent;-webkit-text-stroke:1px rgba(243,239,232,.35);transition:color .7s,-webkit-text-stroke-color .7s,text-shadow .7s}
+.step .ico{width:46px;height:46px;flex:none;color:var(--led);margin-bottom:6px}
+.step .ico path,.step .ico rect,.step .ico circle{fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0;transition:stroke-dashoffset 1.3s cubic-bezier(.4,0,.2,1) .25s}
+.step h3{margin:6px 0 0;font:400 clamp(24px,2.2vw,30px)/1.1 var(--display);transition:opacity .7s ease .1s,transform .7s cubic-bezier(.2,.7,.2,1) .1s}
+.step p{margin:0;color:var(--text-2);font-size:15px;max-width:36ch;transition:opacity .7s ease .2s,transform .7s cubic-bezier(.2,.7,.2,1) .2s}
+.step.on .tick{background:var(--led);box-shadow:0 0 0 6px rgba(242,182,109,.16),0 0 18px rgba(242,182,109,.65)}
+.step.on .n{color:var(--led);-webkit-text-stroke-color:var(--led);text-shadow:0 0 36px rgba(242,182,109,.35)}
+html.js .step{opacity:.28;transform:translateY(44px)}
+html.js .step .ico path,html.js .step .ico rect,html.js .step .ico circle{stroke-dashoffset:1}
+html.js .step h3,html.js .step p{opacity:0;transform:translateY(18px)}
+html.js .step.on{opacity:1;transform:none}
+html.js .step.on .ico path,html.js .step.on .ico rect,html.js .step.on .ico circle{stroke-dashoffset:0}
+html.js .step.on h3,html.js .step.on p{opacity:1;transform:none}
+html.js .reveal{opacity:0;transform:translateY(34px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
+html.js .reveal.on{opacity:1;transform:none}
+.brands{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;margin-top:clamp(64px,8vw,112px)}
+.brands div{border-top:1px solid var(--line);padding-top:14px;transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1),border-color .4s;transition-delay:calc(var(--i,0)*90ms)}
+.brands div:hover{border-color:var(--led)}
+html.js .brands div{opacity:0;transform:translateY(26px)}
+html.js .brands.on div{opacity:1;transform:none}
+.brands dt{font:600 11px/1.5 var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.brands dd{margin:8px 0 0;font:400 22px/1.3 var(--display)}
+.cta{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:28px}
+.cta p{color:var(--text-2);max-width:48ch;margin:14px 0 0}
+footer{padding:28px clamp(16px,3vw,40px) 40px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
+footer a{color:var(--text-2)}
+
+/* ---------- Responsive ---------- */
+@media (min-width:901px) and (max-height:860px){
+  .title{font-size:clamp(34px,3.4vw,46px)}
+  .num{font-size:clamp(72px,6.4vw,96px)}
+  .lede{font-size:14.5px}
+  .desc{min-height:0;font-size:14.5px}
+  .specs dt,.specs dd{padding:8px 0}
+  .specs dt{padding-right:22px}
+  .actions{margin-top:4px}
+  .btn{padding:12px 18px}
+}
+@media (max-width:1199px) and (min-width:901px){.test-badge{top:64px}}
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:28px;padding-top:0}
+  .stage{width:100%;min-width:0;max-width:640px;justify-self:center}
+  .panel{max-width:640px;justify-self:center;width:100%}
+  .process-head{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr;gap:48px}
+  .flow{padding-left:34px}
+  .cota{left:6px;right:auto;top:0;bottom:0;width:1px;height:auto}
+  .cota-fill{width:1px;height:calc(var(--p,0)*100%);background:linear-gradient(180deg,rgba(242,182,109,.2),var(--led))}
+  .cota-fill::after{right:-4.5px;top:auto;bottom:-5px}
+  .step{padding-top:0}
+  .step .tick{left:-34px;top:22px}
+  html.js .step{transform:translateY(30px)}
+  .test-badge{top:54px;font-size:11px;padding:6px 12px;white-space:nowrap}
+  .test-badge .tb-long{display:none}
+  .test-badge .tb-short{display:inline}
+  .walk-cta{display:none}
+  .brands{grid-template-columns:repeat(2,1fr)}
+  .walk-nav button{padding:8px 8px;font-size:11px}
+  .walk{height:860vh}
+}
+@media (max-width:640px){
+  .num{font-size:96px}
+  .photo-hint{font-size:12px;padding:8px 12px}
+  .walk-nav{left:12px;right:12px;transform:none;justify-content:space-between;bottom:14px}
+  .walk-nav button{font-size:0;width:22px;height:22px;padding:0;position:relative}
+  .walk-nav button::after{content:"";position:absolute;inset:8px;border-radius:50%;background:currentColor}
+  .walk-nav button[aria-current="true"]::after{background:#1d1308}
+  .walk-card{left:12px;right:12px;width:auto;bottom:62px;padding:16px 18px 18px}
+  .walk-card h3{font-size:25px}
+  .walk-card p{font-size:13.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;transition-delay:0s!important}
+  html.js .step,html.js .step h3,html.js .step p,html.js .reveal,html.js .brands div{opacity:1;transform:none}
+}
+</style>
+<script>document.documentElement.classList.add("js")</script>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+
+
+<p class="test-badge" role="note"><b>Versión de prueba</b><span class="tb-long"> · En la versión final, las imágenes interactivas serán imágenes reales de proyectos de Cam-Mobel</span><span class="tb-short"> · Imágenes reales en la versión final</span></p>
+<h1 class="sr-only">Cam-Mobel · Cocinas a medida y estudio de interiorismo en Lorca</h1>
+<main>
+<section class="walk" id="recorrido" aria-label="Recorrido por la cocina">
+  <div class="walk-stage" id="walkStage">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <img class="walk-photo" id="walkPhoto" src="img/cocina.jpg" alt="">
+    <div class="walk-shade"></div>
+    <div class="walk-top"><b>CAM·MOBEL</b><div class="walk-right"><span class="walk-count" id="wCount"><strong>01</strong> / 09</span><a class="btn btn-led walk-cta" href="https://maps.app.goo.gl/wFnhtoEpBVBRhdzG7">Ven al estudio</a></div></div>
+    <div class="walk-hint" id="wHint" aria-hidden="true"><i></i>Desliza para entrar en la cocina</div>
+    <article class="walk-card" id="wCard" aria-live="polite">
+      <span class="k" id="wK"></span>
+      <h3 id="wT"></h3>
+      <p id="wP"></p>
+      <div class="chips" id="wC"></div>
+      <a class="btn btn-led" id="wBtn" href="https://maps.app.goo.gl/wFnhtoEpBVBRhdzG7" hidden>Pide tu diseño 3D en el estudio</a>
+    </article>
+    <nav class="walk-nav" id="wNav" aria-label="Paradas del recorrido"></nav>
+  </div>
+</section>
+<section class="hero" id="hero" aria-label="Piezas de la cocina">
+  <div class="stage" id="stage">
+    <div class="photo-wrap" id="photoWrap">
+      <img id="photo" src="img/cocina.jpg" width="1000" height="1000" alt="Cocina de Cam-Mobel con isla de efecto piedra, placa de inducción, columnas de madera oscura y estructura suspendida con luz LED">
+      <svg id="zones" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="gFill" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f2b66d" stop-opacity=".06"/>
+            <stop offset=".5" stop-color="#f2b66d" stop-opacity=".26"/>
+            <stop offset="1" stop-color="#f2b66d" stop-opacity=".06"/>
+          </linearGradient>
+          <linearGradient id="gBand" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffd7a3" stop-opacity="0"/>
+            <stop offset=".5" stop-color="#ffd7a3" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#ffd7a3" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="fGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="7" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <mask id="mSpot" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000">
+            <rect width="1000" height="1000" fill="#fff"/>
+            <polygon id="pMask" fill="#000"/>
+          </mask>
+          <clipPath id="cZone"><polygon id="pClip"/></clipPath>
+        </defs>
+        <rect class="dim" width="1000" height="1000" fill="#080706" fill-opacity=".46" mask="url(#mSpot)"/>
+        <g class="hl" id="hl">
+          <g clip-path="url(#cZone)">
+            <polygon id="pFill" fill="url(#gFill)"/>
+            <rect id="sweep" x="0" y="-200" width="1000" height="90" fill="url(#gBand)"/>
+          </g>
+          <polygon id="pGlow" fill="none" stroke="#f2b66d" stroke-width="2.4" stroke-linejoin="round" filter="url(#fGlow)" vector-effect="non-scaling-stroke"/>
+          <polygon id="pLine" fill="none" stroke="#ffe6c4" stroke-width="1.1" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+        </g>
+      </svg>
+      <div class="photo-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="6.5" y="3" width="11" height="18" rx="5.5"/><path d="M12 7v3"/></svg>
+        <span id="hintText">Pasa el ratón por la cocina · clic para verla en el recorrido</span>
+      </div>
+    </div>
+  </div>
+
+  <aside class="panel" id="panel">
+    <p class="eyebrow">Lorca · Más de 40 años haciendo cocinas a medida</p>
+    <h2 class="title">Tu cocina, <em>pieza a pieza.</em></h2>
+    <p class="lede" id="lede">Esta es una cocina real que diseñamos, fabricamos e instalamos. Pasa el ratón por sus piezas y haz clic en cualquiera: te llevamos a esa parte del recorrido.</p>
+    <div class="readout" aria-live="polite">
+      <div class="num-row" id="numRow">
+        <span class="num-label">Pieza</span>
+        <span class="num" id="num">01</span>
+        <span class="of">/10</span>
+      </div>
+      <h2 id="zName">Estructura suspendida con LED</h2>
+      <p class="desc" id="zDesc"></p>
+      <dl class="specs" id="zSpecs"></dl>
+      <div class="actions">
+        <button class="btn btn-led" id="goPiece" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V4M6 10l6-6 6 6"/></svg>
+          Ver esta pieza en el recorrido
+        </button>
+      </div>
+    </div>
+    <nav class="rail" id="rail" aria-label="Piezas de la cocina"></nav>
+  </aside>
+
+  <svg class="leader" id="leader" aria-hidden="true">
+    <path id="lPath"/>
+    <circle class="ring" id="lRing" r="11"/>
+    <circle class="a" id="lA" r="4"/>
+    <circle class="e" id="lE" r="2.5"/>
+  </svg>
+</section>
+
+
+<section class="band" id="proceso">
+  <div class="wrap">
+    <div class="process-head reveal">
+      <p class="eyebrow">Cómo trabajamos</p>
+      <h2>De la idea a la cocina instalada</h2>
+      <p>Llevamos más de 40 años en Lorca diseñando, fabricando e instalando cocinas personalizadas, además de baños, vestidores y reformas integrales.</p>
+    </div>
+    <div class="flow" id="flow">
+      <div class="cota" aria-hidden="true"><span class="cota-fill" id="cotaFill"></span></div>
+      <ol class="steps">
+        <li class="step">
+          <span class="tick" aria-hidden="true"></span>
+          <div class="step-top"><span class="n">01</span>
+            <svg class="ico" viewBox="0 0 48 48" aria-hidden="true"><path pathLength="1" d="M7 12h22a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3H17l-6 5v-5H7a3 3 0 0 1-3-3V15a3 3 0 0 1 3-3z"/><path pathLength="1" d="M36 19h5a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-3v5l-6-5h-8a3 3 0 0 1-3-3"/></svg>
+          </div>
+          <h3>Reunión en el estudio</h3>
+          <p>Primera visita y asesoramiento en nuestro estudio de Lorca: nos cuentas cómo vives tu cocina.</p>
+        </li>
+        <li class="step">
+          <span class="tick" aria-hidden="true"></span>
+          <div class="step-top"><span class="n">02</span>
+            <svg class="ico" viewBox="0 0 48 48" aria-hidden="true"><path pathLength="1" d="M24 5 41 14.5v19L24 43 7 33.5v-19z"/><path pathLength="1" d="M7 14.5 24 24l17-9.5M24 24v19"/></svg>
+          </div>
+          <h3>Diseño en 3D</h3>
+          <p>Diseñamos tu cocina, baño o vestidor en 3D para que la veas y la ajustes antes de fabricar nada.</p>
+        </li>
+        <li class="step">
+          <span class="tick" aria-hidden="true"></span>
+          <div class="step-top"><span class="n">03</span>
+            <svg class="ico" viewBox="0 0 48 48" aria-hidden="true"><path pathLength="1" d="M6 22 24 7l18 15"/><path pathLength="1" d="M10 19v22h28V19"/><path pathLength="1" d="m17 30 5 5 9-10"/></svg>
+          </div>
+          <h3>Fabricación e instalación</h3>
+          <p>Con el diseño aprobado, la fabricamos e instalamos. Pensada para durar y no tener que cambiarla.</p>
+        </li>
+      </ol>
+    </div>
+    <dl class="brands" id="marcas">
+      <div style="--i:0"><dt>En nuestros proyectos</dt><dd>NovaCucina · Gentili Group · Doca</dd></div>
+      <div style="--i:1"><dt>Electrodomésticos</dt><dd>Bora · Fulgor Milano · Bugatti</dd></div>
+      <div style="--i:2"><dt>Armarios</dt><dd>Bianca · Emede · Vecko</dd></div>
+      <div style="--i:3"><dt>Mobiliario</dt><dd>La Palma · Kettal · Idelum</dd></div>
+      <div style="--i:4"><dt>Baño</dt><dd>Paffoni · Falper · Cielo</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap cta reveal">
+    <div>
+      <h2>¿Quieres ver tu cocina en 3D antes de hacerla?</h2>
+      <p>Trabajamos en toda la Región de Murcia y alrededores: Alicante, Almería, Valencia, Granada, Jaén, Albacete y Castellón.</p>
+    </div>
+    <div class="actions">
+      <a class="btn btn-led" href="https://maps.app.goo.gl/wFnhtoEpBVBRhdzG7">Cómo llegar al estudio</a>
+      <a class="btn btn-ghost" href="https://www.instagram.com/cammobelcocinasinteriorismo">Ver proyectos en Instagram</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Cam-Mobel · Cocinas a medida y estudio de interiorismo · Lorca, Región de Murcia</span>
+    <span><a href="https://www.instagram.com/cammobelcocinasinteriorismo">Instagram</a> · <a href="https://www.facebook.com/CammobelCocinas">Facebook</a> · <a href="https://www.cammobel.es/">cammobel.es</a></span>
+    <span>Concepto de web interactiva: ScilaAI</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // ================= Paradas del recorrido =================
+  var STOPS = [
+    {nav:"Entrada", k:"Proyecto real · Lorca", t:"Entra en una cocina Cam-Mobel", p:"Desliza hacia abajo y recórrela como si estuvieras dentro. En cada parada te contamos una decisión de diseño.", c:["Cocina con isla","Diseño, fabricación e instalación"]},
+    {nav:"Placa", k:"La isla · placa", t:"Se cocina mirando al salón", p:"Placa de inducción enrasada en la encimera de la isla: sin resaltes y fácil de limpiar.", c:["Vitrocerámica negra","Bora · Fulgor Milano · Bugatti"]},
+    {nav:"Barra", k:"La isla · barra", t:"La isla también es mesa", p:"Frontal de madera oscura con vuelo de encimera para sentarse a desayunar o a charlar mientras se cocina.", c:["Madera oscura","Vuelo de barra"]},
+    {nav:"Cascada", k:"La isla · cascada", t:"Una pieza casi escultórica", p:"La encimera baja hasta el suelo en un solo plano y cierra la isla con una sola pieza visual.", c:["Efecto piedra","De encimera a suelo"]},
+    {nav:"Horno", k:"Columnas", t:"El horno, a la altura de los ojos", p:"Columnas de madera oscura de suelo a techo con el horno integrado: más cómodo y visualmente más limpio.", c:["Madera oscura","Fulgor Milano · Bugatti"]},
+    {nav:"Vitrina", k:"Zona de preparación", t:"Luz justo donde se trabaja", p:"Vitrina de vidrio iluminada por dentro y frente de piedra con LED bajo mueble para cortar y preparar.", c:["Vidrio y perfil negro","LED bajo mueble"]},
+    {nav:"LED", k:"Iluminación", t:"Una estructura que ilumina la isla", p:"Bastidor metálico colgado del techo con tiras LED integradas. Define la isla sin cerrar el espacio.", c:["Metal negro mate","LED cálido"]},
+    {nav:"Baldas", k:"Interiorismo", t:"Baldas abiertas y listones", p:"Estantes de perfil negro a juego con la estructura y un panel de listones que da ritmo a la pared.", c:["Perfil metálico","Listones verticales"]},
+    {nav:"3D", k:"Diseño 3D", t:"Así verás tu cocina antes de fabricarla", p:"En el estudio de Lorca diseñamos tu cocina en 3D para que la recorras así y la ajustes antes de fabricar nada.", c:[], cta:true}
+  ];
+  var KS = STOPS.length;
+
+  // ================= Piezas de la foto (px sobre 1000×1000) =================
+  var Z = [
+    {name:"Estructura suspendida con LED", stop:6, desc:"Bastidor metálico colgado del techo con tiras LED integradas. Ilumina toda la zona de trabajo y define la isla sin cerrar el espacio.", ambit:"Iluminación a medida", finish:"Metal negro mate y LED cálido",
+     poly:[[14,0],[566,0],[566,166],[548,184],[380,203],[40,166],[8,98]], anchor:[300,118]},
+    {name:"Vitrina iluminada", stop:5, desc:"Muebles altos con puertas de vidrio y perfil negro. La luz interior convierte la cristalería en parte de la decoración.", ambit:"Cocina · muebles altos", finish:"Vidrio con perfil negro e iluminación interior", brands:"NovaCucina, Gentili Group y Doca",
+     poly:[[22,168],[240,197],[240,322],[22,322]], anchor:[130,262]},
+    {name:"Frente de trabajo", stop:5, desc:"Encimera trasera y frontal en piedra clara con LED bajo mueble: luz rasante justo donde se corta y se prepara.", ambit:"Cocina · zona de preparación", finish:"Piedra clara con LED bajo mueble", brands:"NovaCucina, Gentili Group y Doca",
+     poly:[[22,324],[190,324],[192,458],[276,463],[277,490],[30,522]], anchor:[96,410]},
+    {name:"Columna de horno", stop:4, desc:"Columnas en madera oscura de suelo a techo con el horno a la altura de los ojos: más cómodo de usar y visualmente más limpio.", ambit:"Cocina · columnas", finish:"Madera oscura de suelo a techo", brands:"Fulgor Milano y Bugatti",
+     poly:[[192,192],[426,196],[428,470],[282,530],[276,462],[192,456]], anchor:[345,402]},
+    {name:"Placa de inducción enrasada", stop:1, desc:"Placa integrada a ras de encimera en la isla. Se cocina mirando al salón, sin resaltes y con una limpieza de un solo gesto.", ambit:"Electrodomésticos", finish:"Vitrocerámica negra enrasada", brands:"Bora, Fulgor Milano y Bugatti",
+     poly:[[126,579],[356,530],[504,566],[258,626]], anchor:[315,578]},
+    {name:"Encimera de la isla", stop:2, desc:"Una gran superficie continua de efecto piedra para cocinar, preparar y comer, con pasacables integrado en la esquina.", ambit:"Cocina · isla", finish:"Superficie continua efecto piedra",
+     poly:[[35,590],[278,534],[430,508],[700,465],[935,488],[942,498],[700,577],[612,600],[40,762]], anchor:[520,540]},
+    {name:"Lateral en cascada", stop:3, desc:"La encimera baja hasta el suelo en un solo plano. La isla se lee como una pieza única, casi escultórica.", ambit:"Cocina · isla", finish:"Efecto piedra hasta el suelo",
+     poly:[[612,600],[700,577],[942,498],[942,915],[700,986],[616,966]], anchor:[818,712]},
+    {name:"Zona de barra", stop:2, desc:"Frontal de madera oscura con vuelo de encimera para sentarse. La isla también es la mesa de los desayunos.", ambit:"Cocina · isla", finish:"Madera oscura con vuelo de encimera", brands:"La Palma e Idelum (mobiliario)",
+     poly:[[40,764],[612,602],[616,966],[560,1000],[42,1000]], anchor:[262,860]},
+    {name:"Baldas abiertas", stop:7, desc:"Estantes de perfil negro a juego con la estructura del techo. Ligeros, decorativos y hechos a la medida de la pared.", ambit:"Interiorismo", finish:"Perfil metálico negro",
+     poly:[[504,186],[684,196],[684,308],[504,308]], anchor:[594,252]},
+    {name:"Panel de listones", stop:7, desc:"Revestimiento de listones verticales que da ritmo a la pared y conecta la cocina con el resto de la vivienda.", ambit:"Interiorismo · revestimientos", finish:"Listones verticales en blanco y negro",
+     poly:[[820,152],[1000,150],[1000,580],[942,574],[938,490],[822,484]], anchor:[910,330]}
+  ];
+  var HIT_ORDER=[4,8,1,2,3,0,6,7,5,9], N=Z.length;
+  Z.forEach(function(z){
+    var xs=z.poly.map(function(p){return p[0]}), ys=z.poly.map(function(p){return p[1]});
+    z.b={x0:Math.min.apply(0,xs),x1:Math.max.apply(0,xs),y0:Math.min.apply(0,ys),y1:Math.max.apply(0,ys)};
+    z.pts=z.poly.map(function(p){return p.join(",")}).join(" ");
+  });
+
+  var $=function(id){return document.getElementById(id)};
+  var hero=$("hero"), wrap=$("photoWrap"), numEl=$("num"), numRow=$("numRow"), lPath=$("lPath");
+  var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var touchOnly=matchMedia("(hover: none)").matches;
+  if(touchOnly){
+    $("hintText").textContent="Toca o desliza por la cocina";
+    $("lede").textContent="Esta es una cocina real que diseñamos, fabricamos e instalamos. Toca sus piezas y vuelve a tocar cualquiera: te llevamos a esa parte del recorrido.";
+  }
+  function pad(n){return (n<10?"0":"")+n}
+  var cur=-1, lastInteract=0, overPhoto=false;
+
+  // ---- Recorrido: posición de scroll de cada parada ----
+  var walk=$("recorrido");
+  function stopY(k){
+    var top=walk.getBoundingClientRect().top+scrollY;
+    return top+(k/(KS-1))*(walk.offsetHeight-innerHeight);
+  }
+  function goStop(k){ scrollTo({top:Math.round(stopY(k))+2,behavior:reduce?"auto":"smooth"}); }
+  window.__walkStops=STOPS; window.__goStop=goStop;
+
+  // ---- Barra de piezas de la portada ----
+  var rail=$("rail");
+  Z.forEach(function(z,i){
+    var b=document.createElement("button"); b.type="button"; b.textContent=pad(i+1);
+    b.setAttribute("aria-label",pad(i+1)+" · "+z.name); b.title=z.name;
+    b.addEventListener("mouseenter",function(){lastInteract=performance.now();select(i)});
+    b.addEventListener("focus",function(){lastInteract=performance.now();select(i)});
+    b.addEventListener("click",function(){goStop(Z[i].stop)});
+    rail.appendChild(b);
+  });
+  var railBtns=rail.querySelectorAll("button");
+
+  function select(i,force){
+    if(i===cur&&!force) return;
+    cur=i; var z=Z[i];
+    ["pMask","pClip","pFill","pGlow","pLine"].forEach(function(id){$(id).setAttribute("points",z.pts)});
+    var hl=$("hl"); hl.classList.remove("fresh"); requestAnimationFrame(function(){hl.classList.add("fresh")});
+    numEl.textContent=pad(i+1); numEl.classList.remove("tick"); void numEl.offsetWidth; numEl.classList.add("tick");
+    $("zName").textContent=z.name; $("zDesc").textContent=z.desc;
+    var rows=[["Ámbito",z.ambit],["Acabado",z.finish], z.brands?["Trabajamos con",z.brands]:["Proceso","Diseño 3D, fabricación e instalación"]];
+    $("zSpecs").innerHTML=rows.map(function(r){return "<dt>"+r[0]+"</dt><dd>"+r[1]+"</dd>"}).join("");
+    railBtns.forEach(function(b,k){b.setAttribute("aria-current",k===i?"true":"false")});
+    drawLeader(true);
+  }
+  function inside(x,y,p){
+    var c=false;
+    for(var i=0,j=p.length-1;i<p.length;j=i++){
+      var xi=p[i][0],yi=p[i][1],xj=p[j][0],yj=p[j][1];
+      if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi)) c=!c;
+    }
+    return c;
+  }
+  function zoneAt(cx,cy){
+    var r=wrap.getBoundingClientRect(), x=(cx-r.left)/r.width*1000, y=(cy-r.top)/r.height*1000;
+    for(var k=0;k<HIT_ORDER.length;k++){ if(inside(x,y,Z[HIT_ORDER[k]].poly)) return HIT_ORDER[k]; }
+    return -1;
+  }
+  function drawLeader(animate){
+    if(cur<0) return;
+    var h=hero.getBoundingClientRect(), p=wrap.getBoundingClientRect(), n=numRow.getBoundingClientRect(), z=Z[cur];
+    var ax=p.left-h.left+z.anchor[0]/1000*p.width, ay=p.top-h.top+z.anchor[1]/1000*p.height;
+    $("lA").setAttribute("cx",ax); $("lA").setAttribute("cy",ay);
+    $("lRing").setAttribute("cx",ax); $("lRing").setAttribute("cy",ay);
+    if(!(n.left>p.right-4)){ lPath.setAttribute("d",""); $("lE").setAttribute("r",0); return; }
+    var ex=n.left-h.left-12, ey=n.top-h.top+n.height*0.5, gx=p.right-h.left, kx=gx+Math.min(48,(ex-gx)*0.4);
+    lPath.setAttribute("d","M"+ax.toFixed(1)+","+ay.toFixed(1)+" L"+kx.toFixed(1)+","+ey.toFixed(1)+" L"+ex.toFixed(1)+","+ey.toFixed(1));
+    $("lE").setAttribute("r",2.5); $("lE").setAttribute("cx",ex); $("lE").setAttribute("cy",ey);
+    if(animate&&!reduce){
+      var L=lPath.getTotalLength();
+      lPath.style.transition="none"; lPath.style.strokeDasharray=L; lPath.style.strokeDashoffset=L;
+      lPath.getBoundingClientRect();
+      lPath.style.transition="stroke-dashoffset .55s cubic-bezier(.3,.7,.2,1)"; lPath.style.strokeDashoffset=0;
+    } else { lPath.style.strokeDasharray="none"; lPath.style.strokeDashoffset=0; }
+  }
+  var sweep=$("sweep");
+  (function sweepLoop(t){
+    requestAnimationFrame(sweepLoop);
+    if(cur<0||reduce) return;
+    var b=Z[cur].b, hgt=Math.max(40,(b.y1-b.y0)*0.3), span=(b.y1-b.y0)+hgt*2;
+    var f=(t%2300)/2300, e=f<.5?2*f*f:1-Math.pow(-2*f+2,2)/2;
+    sweep.setAttribute("height",hgt.toFixed(1)); sweep.setAttribute("y",(b.y0-hgt*1.5+e*span).toFixed(1));
+  })(0);
+
+  var down=null;
+  wrap.addEventListener("pointermove",function(e){
+    lastInteract=performance.now();
+    if(e.pointerType==="touch"&&!down) return;
+    var k=zoneAt(e.clientX,e.clientY);
+    wrap.classList.toggle("hot",k>=0);
+    if(k>=0) select(k);
+    if(down&&(Math.abs(e.clientX-down.x)>8||Math.abs(e.clientY-down.y)>8)) down.moved=true;
+  });
+  wrap.addEventListener("pointerenter",function(){overPhoto=true});
+  wrap.addEventListener("pointerleave",function(){overPhoto=false;wrap.classList.remove("hot")});
+  wrap.addEventListener("pointerdown",function(e){
+    lastInteract=performance.now();
+    var k=zoneAt(e.clientX,e.clientY);
+    down={x:e.clientX,y:e.clientY,moved:false,wasSel:k>=0&&k===cur,type:e.pointerType};
+    if(e.pointerType==="touch"){ try{wrap.setPointerCapture(e.pointerId)}catch(_){}; if(k>=0) select(k); }
+  });
+  wrap.addEventListener("pointerup",function(e){
+    if(!down) return;
+    var k=zoneAt(e.clientX,e.clientY), d=down; down=null;
+    if(d.moved||k<0) return;
+    if(d.type!=="touch"||d.wasSel) goStop(Z[k].stop);
+  });
+  wrap.addEventListener("pointercancel",function(){down=null});
+  $("goPiece").addEventListener("click",function(){goStop(Z[cur].stop)});
+
+  setInterval(function(){
+    if(overPhoto||down||performance.now()-lastInteract<6000) return;
+    var hr=hero.getBoundingClientRect(); if(hr.bottom<0||hr.top>innerHeight) return;
+    select((cur+1)%N);
+  },2400);
+
+  addEventListener("resize",function(){drawLeader(false)});
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){drawLeader(false)});
+  $("photo").addEventListener("load",function(){drawLeader(false)});
+  select(0,true); lastInteract=performance.now()-3500;
+
+  // ================= Interfaz del recorrido =================
+  var wNav=$("wNav"), navBtns=[];
+  STOPS.forEach(function(s,k){
+    var b=document.createElement("button"); b.type="button"; b.textContent=s.nav;
+    b.setAttribute("aria-label","Ir a "+s.t);
+    b.addEventListener("click",function(){goStop(k)});
+    wNav.appendChild(b); navBtns.push(b);
+  });
+  var shownCard=-1;
+  function setCard(k){
+    if(k===shownCard) return; shownCard=k; var s=STOPS[k];
+    $("wK").textContent=pad(k+1)+" · "+s.k; $("wT").textContent=s.t; $("wP").textContent=s.p;
+    $("wC").innerHTML=s.c.map(function(c){return "<span>"+c+"</span>"}).join("");
+    $("wC").hidden=!s.c.length; $("wBtn").hidden=!s.cta;
+    $("wCount").innerHTML="<strong>"+pad(k+1)+"</strong> / "+pad(KS);
+    navBtns.forEach(function(b,i){b.setAttribute("aria-current",i===k?"true":"false")});
+  }
+  // La escena 3D llama a esto en cada fotograma con la posición del recorrido (u de 0 a KS-1)
+  var card=$("wCard"), wPhoto=$("walkPhoto"), wHint=$("wHint");
+  window.__walkUI=function(u){
+    var k=Math.max(0,Math.min(KS-1,Math.round(u)));
+    setCard(k);
+    var d=Math.abs(u-k), o=1-Math.max(0,Math.min(1,(d-0.26)/0.16));
+    card.style.opacity=o.toFixed(3);
+    card.style.transform="translateY("+((1-o)*14).toFixed(1)+"px)";
+    card.style.visibility=o<0.02?"hidden":"visible";
+    var po=1-Math.max(0,Math.min(1,(u-0.04)/0.2));
+    wPhoto.style.opacity=po.toFixed(3);
+    wHint.style.opacity=(1-Math.max(0,Math.min(1,u/0.22))).toFixed(3);
+    wPhoto.style.transform="scale("+(1+0.3*Math.min(1,u/0.24)).toFixed(4)+")";
+  };
+  // Sin 3D: el recorrido sigue mostrando la foto y las tarjetas
+  function walkProgress(){
+    var r=walk.getBoundingClientRect(), total=walk.offsetHeight-innerHeight;
+    return Math.max(0,Math.min(1,-r.top/total));
+  }
+  window.__walkProgress=walkProgress;
+  setTimeout(function(){
+    if(!window.__walkGL){
+      walk.classList.add("nogl");
+      var f=function(){ window.__walkUI(walkProgress()*(KS-1)); wPhoto.style.opacity=1; wPhoto.style.transform="none"; };
+      addEventListener("scroll",f,{passive:true}); f();
+    }
+  },4000);
+  window.__walkUI(0);
+
+  // ================= Cómo trabajamos: aparece con el scroll =================
+  var revealEls=document.querySelectorAll(".reveal,.brands");
+  if("IntersectionObserver" in window&&!reduce){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){ if(e.isIntersecting){e.target.classList.add("on"); io.unobserve(e.target);} });},{threshold:.18});
+    revealEls.forEach(function(el){io.observe(el)});
+  } else revealEls.forEach(function(el){el.classList.add("on")});
+
+  var flow=$("flow"), steps=flow.querySelectorAll(".step"), cotaFill=$("cotaFill"), flowQueued=false;
+  function updFlow(){
+    flowQueued=false;
+    var r=flow.getBoundingClientRect(), vh=innerHeight, vertical=matchMedia("(max-width:900px)").matches;
+    var p=reduce?1:Math.max(0,Math.min(1,(vh*0.82-r.top)/(r.height*0.9+vh*0.22)));
+    flow.style.setProperty("--p",p.toFixed(4));
+    steps.forEach(function(st){
+      var sr=st.getBoundingClientRect();
+      var at=vertical?(sr.top-r.top+22)/r.height:(sr.left-r.left)/r.width;
+      st.classList.toggle("on",p>=at+0.02);
+    });
+  }
+  function queueFlow(){ if(!flowQueued){flowQueued=true; requestAnimationFrame(updFlow);} }
+  addEventListener("scroll",queueFlow,{passive:true});
+  addEventListener("resize",queueFlow);
+  updFlow();
+})();
+</script>
+
+<script type="module">
+import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { RectAreaLightUniformsLib } from "three/addons/lights/RectAreaLightUniformsLib.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+const walk = document.getElementById("recorrido");
+const stage = document.getElementById("walkStage");
+const canvas = document.getElementById("gl");
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" }); } catch (e) {}
+
+if (renderer) {
+  window.__walkGL = true;
+  const small = Math.min(innerWidth, innerHeight) < 700;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, small ? 1.5 : 1.75));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  RectAreaLightUniformsLib.init();
+
+  const scene = new THREE.Scene();
+  const BG_REAL = new THREE.Color(0x15130f), BG_CLAY = new THREE.Color(0xebe7e0);
+  scene.background = BG_REAL.clone();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+  const camera = new THREE.PerspectiveCamera(46, 1, 0.05, 80);
+
+  // ---------- Texturas generadas (madera, piedra, suelo) ----------
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function tex(c, srgb = true) {
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return t;
+  }
+  function woodTex() {
+    const c = document.createElement("canvas"); c.width = 512; c.height = 1024;
+    const g = c.getContext("2d");
+    g.fillStyle = "#2c2019"; g.fillRect(0, 0, 512, 1024);
+    for (let i = 0; i < 1100; i++) {
+      const x = Math.random() * 512, n = 1 + Math.floor(Math.random() * 3), ph = Math.random() * 6.28, amp = rnd(0.5, 4);
+      const light = Math.random() < 0.45;
+      g.strokeStyle = light ? `rgba(104,76,55,${rnd(0.04, 0.18)})` : `rgba(12,8,6,${rnd(0.05, 0.22)})`;
+      g.lineWidth = rnd(0.5, 2.6);
+      g.beginPath();
+      for (let y = 0; y <= 1024; y += 16) {
+        const xx = x + Math.sin(y / 1024 * Math.PI * 2 * n + ph) * amp;
+        y ? g.lineTo(xx, y) : g.moveTo(xx, y);
+      }
+      g.stroke();
+    }
+    return tex(c);
+  }
+  function stoneTex(base = "#d7d1c8") {
+    const c = document.createElement("canvas"); c.width = c.height = 1024;
+    const g = c.getContext("2d");
+    g.fillStyle = base; g.fillRect(0, 0, 1024, 1024);
+    const blot = (x, y, r, col) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); };
+    for (let i = 0; i < 2600; i++) {
+      const x = Math.random() * 1024, y = Math.random() * 1024, r = rnd(5, 38);
+      const col = Math.random() < 0.55 ? `rgba(140,130,118,${rnd(0.015, 0.05)})` : `rgba(246,242,236,${rnd(0.02, 0.06)})`;
+      for (const dx of [-1024, 0, 1024]) for (const dy of [-1024, 0, 1024]) if (x + dx > -r && x + dx < 1024 + r && y + dy > -r && y + dy < 1024 + r) blot(x + dx, y + dy, r, col);
+    }
+    for (let i = 0; i < 9000; i++) {
+      g.fillStyle = `rgba(${Math.random() < 0.5 ? "96,88,78" : "128,118,106"},${rnd(0.15, 0.5)})`;
+      const s = rnd(0.6, 1.8); g.fillRect(Math.random() * 1024, Math.random() * 1024, s, s);
+    }
+    return tex(c);
+  }
+  function floorTex() {
+    const c = document.createElement("canvas"); c.width = c.height = 1024;
+    const g = c.getContext("2d");
+    for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+      const v = 92 + Math.floor(rnd(-6, 6));
+      g.fillStyle = `rgb(${v},${v - 3},${v - 7})`; g.fillRect(i * 512, j * 512, 512, 512);
+      for (let k = 0; k < 2500; k++) { g.fillStyle = `rgba(${Math.random() < .5 ? "60,57,53" : "130,126,120"},${rnd(.03, .12)})`; const s = rnd(1, 4); g.fillRect(i * 512 + Math.random() * 512, j * 512 + Math.random() * 512, s, s); }
+    }
+    g.fillStyle = "#3d3a37";
+    for (const p of [0, 512]) { g.fillRect(p, 0, 3, 1024); g.fillRect(0, p, 1024, 3); }
+    return tex(c);
+  }
+  // UV a escala real para que la textura no se estire según el tamaño de la pieza
+  function worldUV(geo, w, h, d, su, sv) {
+    const uv = geo.attributes.uv;
+    const dims = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]];
+    for (let f = 0; f < 6; f++) for (let v = 0; v < 4; v++) {
+      const i = f * 4 + v; uv.setXY(i, uv.getX(i) * dims[f][0] / su, uv.getY(i) * dims[f][1] / sv);
+    }
+    uv.needsUpdate = true;
+  }
+
+  // ---------- Materiales con paso a "arcilla" ----------
+  const U = { clay: { value: 0 }, clayCol: { value: new THREE.Color(0xe8e3db) } };
+  const mats = [];
+  function M(type, params, uvScale) {
+    const m = new THREE[type](params);
+    m.envMapIntensity = params.envMapIntensity ?? 0.6;
+    m.userData.uvScale = uvScale;
+    m.onBeforeCompile = sh => {
+      sh.uniforms.uClay = U.clay; sh.uniforms.uClayCol = U.clayCol;
+      sh.fragmentShader = sh.fragmentShader
+        .replace("#include <common>", "#include <common>\nuniform float uClay;\nuniform vec3 uClayCol;")
+        .replace("#include <map_fragment>", "#include <map_fragment>\n\tdiffuseColor.rgb = mix(diffuseColor.rgb, uClayCol, uClay);")
+        .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n\troughnessFactor = mix(roughnessFactor, 0.92, uClay);")
+        .replace("#include <metalnessmap_fragment>", "#include <metalnessmap_fragment>\n\tmetalnessFactor = mix(metalnessFactor, 0.0, uClay);");
+    };
+    mats.push(m);
+    return m;
+  }
+  const wood = M("MeshStandardMaterial", { map: woodTex(), roughness: 0.58 }, [0.7, 1.4]);
+  const stone = M("MeshStandardMaterial", { map: stoneTex(), roughness: 0.42 }, [1.1, 1.1]);
+  const wall = M("MeshStandardMaterial", { color: 0xeeebe6, roughness: 0.93, envMapIntensity: 0.35 });
+  const ceilMat = M("MeshStandardMaterial", { color: 0xf3f1ed, roughness: 0.95, envMapIntensity: 0.3, transparent: true });
+  const black = M("MeshStandardMaterial", { color: 0x141414, roughness: 0.42, metalness: 0.55 });
+  const blackGlass = M("MeshPhysicalMaterial", { color: 0x060606, roughness: 0.05, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 1.0 });
+  const oven = M("MeshStandardMaterial", { color: 0x232220, roughness: 0.35, metalness: 0.4 });
+  const glass = M("MeshPhysicalMaterial", { color: 0xffffff, roughness: 0.04, transparent: true, opacity: 0.16, depthWrite: false, envMapIntensity: 1.2 });
+  const oak = M("MeshStandardMaterial", { color: 0xc49b6c, roughness: 0.62 });
+  const white = M("MeshStandardMaterial", { color: 0xf1eee9, roughness: 0.8 });
+  const books = [0x7d6b57, 0x3f3b36, 0xb8ad9c].map(c => M("MeshStandardMaterial", { color: c, roughness: 0.8 }));
+  const floorMat = M("MeshStandardMaterial", { map: floorTex(), roughness: 0.62, envMapIntensity: 0.5 });
+  const LED_REAL = new THREE.Color(2.6, 1.75, 0.95), LED_CLAY = new THREE.Color(0.9, 0.88, 0.85);
+  const ledMat = new THREE.MeshBasicMaterial({ color: LED_REAL.clone() });
+  const spotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 2.0, 1.8) });
+
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0x6d655b, transparent: true, opacity: 0 });
+  const edges = new THREE.Group(); edges.visible = false; scene.add(edges);
+
+  function B(x0, x1, y0, y1, z0, z1, mat, o = {}) {
+    const w = x1 - x0, h = y1 - y0, d = z1 - z0;
+    const geo = new THREE.BoxGeometry(w, h, d);
+    if (mat.userData && mat.userData.uvScale) worldUV(geo, w, h, d, mat.userData.uvScale[0], mat.userData.uvScale[1]);
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    m.castShadow = o.cast !== false; m.receiveShadow = true;
+    scene.add(m);
+    if (o.edges !== false) { const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), edgeMat); e.position.copy(m.position); edges.add(e); }
+    return m;
+  }
+  function Cyl(r, h, x, y, z, mat, o = {}) {
+    const geo = new THREE.CylinderGeometry(r, o.r2 ?? r, h, o.seg || 28);
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z); if (o.rot) m.rotation.set(...o.rot);
+    m.castShadow = o.cast !== false; m.receiveShadow = true; scene.add(m);
+    if (o.edges !== false) { const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), edgeMat); e.position.copy(m.position); e.rotation.copy(m.rotation); edges.add(e); }
+    return m;
+  }
+  function rod(a, b, r, mat) {
+    const A = new THREE.Vector3(...a), Bv = new THREE.Vector3(...b);
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, A.distanceTo(Bv), 10), mat);
+    m.position.copy(A).add(Bv).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), Bv.clone().sub(A).normalize());
+    m.castShadow = true; scene.add(m); return m;
+  }
+  function frame(x0, x1, y0, y1, z0, z1, t, mat) {
+    for (const y of [y0, y1]) for (const z of [z0, z1]) B(x0, x1, y - t / 2, y + t / 2, z - t / 2, z + t / 2, mat, { edges: false });
+    for (const x of [x0, x1]) for (const z of [z0, z1]) B(x - t / 2, x + t / 2, y0, y1, z - t / 2, z + t / 2, mat, { edges: false });
+    for (const x of [x0, x1]) for (const y of [y0, y1]) B(x - t / 2, x + t / 2, y - t / 2, y + t / 2, z0, z1, mat, { edges: false });
+  }
+  function ring(x, z, y, r) {
+    const pts = new THREE.EllipseCurve(0, 0, r, r).getPoints(48).map(p => new THREE.Vector3(x + p.x, y, z + p.y));
+    const l = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x4a4a4a, transparent: true, opacity: 0.9 }));
+    scene.add(l); return l;
+  }
+
+  // ---------- Suelo, paredes y techo ----------
+  floorMat.map.repeat.set(1, 1);
+  const floorGeo = new THREE.PlaneGeometry(40, 40);
+  const fuv = floorGeo.attributes.uv; for (let i = 0; i < fuv.count; i++) fuv.setXY(i, fuv.getX(i) * 40 / 1.2, fuv.getY(i) * 40 / 1.2);
+  const floor = new THREE.Mesh(floorGeo, floorMat); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  const grid = new THREE.GridHelper(18, 30, 0x5a5248, 0x5a5248); grid.material.transparent = true; grid.material.opacity = 0; grid.position.set(3, 0.003, 1.2); scene.add(grid);
+
+  B(-3.2, 4.4, 0, 2.8, -0.12, 0, wall);
+  B(4.4, 4.52, 0, 2.8, -1.0, 0, wall);
+  B(4.4, 4.64, 0, 2.8, -1.12, -1.0, wall);
+  B(5.4, 7.8, 0, 2.8, -1.12, -1.0, wall);
+  B(4.64, 5.4, 2.12, 2.8, -1.12, -1.0, wall);
+  B(4.4, 5.6, 0, 2.8, -2.8, -2.68, wall);
+  B(5.6, 5.72, 0, 2.8, -2.8, -1.12, wall);
+  B(7.8, 7.92, 0, 2.8, -1.12, 6.5, wall);
+  const leftWall = B(-3.32, -3.2, 0, 2.8, -0.12, 6.5, wall, { edges: false });
+  // puerta abierta
+  const door = B(-0.38, 0.38, 0, 2.08, -0.02, 0.02, white, { edges: false }); door.position.set(4.66 + 0.13, 1.04, -1.06 - 0.36); door.rotation.y = -1.25;
+  // techo (desaparece en la maqueta) con focos empotrados
+  const ceiling = B(-3.2, 7.8, 2.8, 2.86, -2.8, 6.5, ceilMat, { cast: false, edges: false });
+  const spots = [];
+  for (const [x, z] of [[0.2, 2.9], [1.6, 2.9], [3.0, 2.9], [3.6, 0.6], [5.0, -0.4], [6.4, -0.4], [-1.2, 1.2]]) {
+    const s = new THREE.Mesh(new THREE.CircleGeometry(0.045, 24), spotMat); s.rotation.x = Math.PI / 2; s.position.set(x, 2.797, z); scene.add(s); spots.push(s);
+  }
+  B(2.98, 3.06, 1.2, 1.3, 0, 0.012, white, { edges: false });
+  B(3.86, 3.92, 1.18, 1.24, 0, 0.012, black, { edges: false });
+
+  // ---------- Frente de trabajo y vitrina ----------
+  B(0, 1.75, 0, 0.1, 0, 0.54, black, { edges: false });
+  B(0, 1.75, 0.1, 0.86, 0, 0.56, wood, { edges: false });
+  for (const [c0, c1] of [[0, 0.872], [0.878, 1.75]]) for (const [r0, r1] of [[0.104, 0.476], [0.482, 0.856]]) B(c0 + 0.002, c1 - 0.002, r0, r1, 0.56, 0.59, wood);
+  B(0, 1.75, 0.86, 0.9, 0, 0.62, stone);
+  B(0, 1.75, 0.9, 1.5, 0, 0.012, stone);
+  B(0.8, 0.94, 0.9, 1.12, 0.16, 0.27, oak);
+  for (let k = 0; k < 4; k++) Cyl(0.009, 0.1, 0.83 + k * 0.027, 1.17, 0.215, black, { seg: 10, edges: false });
+  // vitrina
+  B(0, 1.75, 1.5, 1.53, 0, 0.36, black);
+  B(0, 1.75, 2.27, 2.3, 0, 0.36, black);
+  B(0, 0.02, 1.53, 2.27, 0, 0.36, black);
+  B(1.73, 1.75, 1.53, 2.27, 0, 0.36, black);
+  B(0.865, 0.885, 1.53, 2.27, 0.33, 0.36, black, { edges: false });
+  B(0.02, 1.73, 1.53, 2.27, 0, 0.014, wood, { edges: false });
+  B(0.02, 1.73, 1.895, 1.905, 0.014, 0.34, glass, { cast: false });
+  B(0.004, 0.872, 1.505, 2.295, 0.345, 0.358, glass, { cast: false });
+  B(0.878, 1.746, 1.505, 2.295, 0.345, 0.358, glass, { cast: false });
+  B(0.03, 1.72, 1.488, 1.5, 0.27, 0.33, ledMat, { edges: false, cast: false });
+  B(0.03, 1.72, 2.256, 2.268, 0.22, 0.3, ledMat, { edges: false, cast: false });
+  for (const [y, tall] of [[1.53, 0.1], [1.905, 0.15]]) for (let k = 0; k < 10; k++) {
+    const x = 0.1 + k * 0.165 + (k > 4 ? 0.05 : 0); if (x > 1.68) continue;
+    Cyl(0.03, tall, x, y + tall / 2, 0.17, glass, { r2: tall > 0.12 ? 0.022 : 0.028, seg: 20, cast: false });
+  }
+
+  // ---------- Columna de horno ----------
+  B(1.75, 2.62, 0, 0.1, 0, 0.56, black, { edges: false });
+  B(1.75, 2.62, 0.1, 2.6, 0, 0.6, wood, { edges: false });
+  B(1.752, 2.618, 0.104, 0.86, 0.6, 0.63, wood);
+  B(1.752, 2.618, 1.56, 2.596, 0.6, 0.63, wood);
+  B(1.79, 2.58, 0.88, 1.54, 0.6, 0.628, oven);
+  B(1.8, 2.57, 0.9, 1.4, 0.628, 0.64, blackGlass);
+  B(1.8, 2.57, 1.42, 1.52, 0.628, 0.636, blackGlass, { edges: false });
+  B(1.9, 2.47, 1.35, 1.366, 0.645, 0.672, black, { edges: false });
+  for (const x of [1.95, 2.42]) Cyl(0.02, 0.02, x, 1.47, 0.645, black, { rot: [Math.PI / 2, 0, 0], edges: false });
+
+  // ---------- Estructura suspendida con LED ----------
+  const sx0 = -0.15, sx1 = 2.9, sz0 = 0.72, sz1 = 1.95, sy0 = 2.03, sy1 = 2.34;
+  B(sx0, sx1, sy0, sy1, sz1 - 0.03, sz1, black);
+  B(sx0, sx1, sy0, sy1, sz0, sz0 + 0.03, black);
+  B(sx0, sx0 + 0.03, sy0, sy1, sz0, sz1, black);
+  B(sx1 - 0.03, sx1, sy0, sy1, sz0, sz1, black);
+  B(sx0, sx1, sy1 - 0.02, sy1, sz0, sz1, black);
+  B(sx0 + 0.03, sx1 - 0.03, 2.16, 2.18, sz0 + 0.03, sz1 - 0.03, black);
+  B(sx0 + 0.06, sx1 - 0.06, sy0 - 0.004, sy0 + 0.008, sz1 - 0.065, sz1 - 0.035, ledMat, { edges: false, cast: false });
+  B(sx0 + 0.06, sx1 - 0.06, sy0 - 0.004, sy0 + 0.008, sz0 + 0.035, sz0 + 0.065, ledMat, { edges: false, cast: false });
+  B(sx0 + 0.06, sx1 - 0.06, 2.146, 2.158, 1.32, 1.35, ledMat, { edges: false, cast: false });
+  for (const x of [sx0 + 0.2, sx1 - 0.2]) for (const z of [sz0 + 0.12, sz1 - 0.12]) rod([x, sy1, z], [x, 2.8, z], 0.008, black);
+
+  // ---------- Isla ----------
+  const ix0 = -0.45, ix1 = 3.25, iz0 = 1.35, iz1 = 2.4, iw = 2.8;
+  B(ix0, ix1, 0.88, 0.92, iz0, iz1, stone);
+  Cyl(0.036, 0.006, 2.98, 0.921, 1.55, black, { edges: false });
+  B(iw, ix1, 0, 0.88, iz0, iz1, stone);
+  B(ix0, iw, 0.06, 0.88, iz0, 2.08, wood);
+  B(ix0, iw, 0, 0.06, iz0, 2.04, black, { edges: false });
+  B(0.55, 1.37, 0.92, 0.926, 1.46, 1.96, blackGlass);
+  for (const [x, z, r] of [[0.76, 1.6, 0.1], [0.76, 1.83, 0.075], [1.14, 1.6, 0.075], [1.14, 1.82, 0.11]]) ring(x, z, 0.9275, r);
+  // taburete
+  const st = [0.95, 2.66];
+  Cyl(0.19, 0.05, st[0], 0.7, st[1], oak, { seg: 40 });
+  Cyl(0.026, 0.42, st[0], 0.46, st[1], black, { edges: false });
+  for (let k = 0; k < 4; k++) { const a = Math.PI / 4 + k * Math.PI / 2; rod([st[0] + Math.cos(a) * 0.24, 0, st[1] + Math.sin(a) * 0.24], [st[0] + Math.cos(a) * 0.05, 0.42, st[1] + Math.sin(a) * 0.05], 0.011, black); }
+  const tor = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.008, 8, 48), black); tor.rotation.x = Math.PI / 2; tor.position.set(st[0], 0.22, st[1]); tor.castShadow = true; scene.add(tor);
+
+  // ---------- Baldas y listones ----------
+  frame(2.98, 3.98, 1.82, 2.02, 0.004, 0.22, 0.016, black);
+  frame(2.98, 3.98, 1.48, 1.68, 0.004, 0.22, 0.016, black);
+  B(3.14, 3.175, 1.488, 1.64, 0.05, 0.19, books[0]);
+  B(3.18, 3.21, 1.488, 1.62, 0.05, 0.19, books[1]);
+  B(3.215, 3.25, 1.488, 1.63, 0.05, 0.19, books[2]);
+  Cyl(0.05, 0.16, 3.7, 1.568, 0.11, white, { r2: 0.035, seg: 28 });
+  Cyl(0.08, 0.04, 3.4, 1.848, 0.11, black, { r2: 0.05, seg: 32 });
+  B(5.46, 7.08, 0, 2.7, -1.0, -0.992, black, { edges: false });
+  for (let x = 5.5; x < 7.04; x += 0.064) B(x, x + 0.032, 0, 2.7, -0.992, -0.96, white);
+
+  // ---------- Luces ----------
+  const hemi = new THREE.HemisphereLight(0xfff8f0, 0x6e6860, 0.35); scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xfff1e0, 1.5);
+  sun.position.set(-4.5, 5.5, 9); sun.target.position.set(2.4, 0.4, 0.6);
+  sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 28 });
+  sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03; sun.shadow.radius = 4;
+  scene.add(sun, sun.target);
+  const areas = [];
+  function area(x, y, z, w, h, I) {
+    const l = new THREE.RectAreaLight(0xffc88a, I, w, h); l.position.set(x, y, z); l.lookAt(x, 0, z); scene.add(l); areas.push([l, I]);
+  }
+  area(1.375, 2.02, 1.9, 2.9, 0.05, 9);
+  area(1.375, 2.02, 0.77, 2.9, 0.05, 9);
+  area(1.375, 2.14, 1.335, 2.9, 0.04, 6);
+  area(0.875, 1.485, 0.3, 1.7, 0.06, 10);
+  const pts = [];
+  for (const [x, z] of [[0.2, 2.9], [1.6, 2.9], [3.0, 2.9], [3.6, 0.6], [5.0, -0.4], [6.4, -0.4]]) {
+    const p = new THREE.SpotLight(0xffe7cc, 6, 6, 0.6, 0.6, 2); p.position.set(x, 2.78, z); p.target.position.set(x, 0, z); scene.add(p, p.target); pts.push([p, 6]);
+  }
+
+  // ---------- Posproceso ----------
+  const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+  const composer = new EffectComposer(renderer, rt);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.7, 0.42, 1.5);
+  composer.addPass(bloom);
+  composer.addPass(new OutputPass());
+
+  // ---------- Recorrido de cámara ----------
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const SHOTS = [
+    [V(-0.8, 1.48, 3.15), V(2.5, 0.95, 0.75)],   // entrada (como la foto)
+    [V(0.15, 1.78, 3.25), V(0.98, 0.88, 1.72)],  // placa
+    [V(-0.35, 1.02, 3.7), V(2.3, 0.66, 2.15)],   // barra
+    [V(4.75, 1.35, 3.75), V(3.0, 0.5, 1.85)],    // cascada
+    [V(2.35, 1.5, 3.05), V(2.18, 1.28, 0.3)],    // horno
+    [V(0.95, 1.58, 2.85), V(0.85, 1.45, 0.2)],   // vitrina y frente
+    [V(0.2, 1.22, 3.6), V(1.4, 2.12, 1.3)],      // estructura LED
+    [V(2.95, 1.62, 3.45), V(4.7, 1.5, -0.45)],   // baldas y listones
+    [V(-2.3, 4.5, 6.0), V(1.65, 0.6, 1.05)]      // maqueta
+  ];
+  const K = SHOTS.length;
+  const posCurve = new THREE.CatmullRomCurve3(SHOTS.map(s => s[0]), false, "centripetal");
+  const tgtCurve = new THREE.CatmullRomCurve3(SHOTS.map(s => s[1]), false, "centripetal");
+  const sstep = x => x * x * (3 - 2 * x);
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+
+  let portrait = false;
+  function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false);
+    composer.setSize(w, h);
+    bloom.setSize(w, h);
+    camera.aspect = w / h;
+    portrait = camera.aspect < 0.9;
+    camera.fov = portrait ? 62 : 46;
+    camera.updateProjectionMatrix();
+    dirty = true;
+  }
+  let dirty = true, pS = window.__walkProgress ? window.__walkProgress() : 0, last = -1, visible = true;
+  addEventListener("resize", resize);
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) dirty = true; }, { rootMargin: "200px" }).observe(walk);
+
+  const tmpP = new THREE.Vector3(), tmpT = new THREE.Vector3(), off = new THREE.Vector3();
+  function apply(p) {
+    const u = p * (K - 1);
+    const k = Math.min(K - 2, Math.floor(u)), f = u - k;
+    const g = sstep(clamp01((f - 0.22) / 0.56));
+    const t = (k + g) / (K - 1);
+    posCurve.getPoint(t, tmpP); tgtCurve.getPoint(t, tmpT);
+    if (portrait) { off.copy(tmpP).sub(tmpT).multiplyScalar(1.28); tmpP.copy(tmpT).add(off); }
+    camera.position.copy(tmpP); camera.lookAt(tmpT);
+
+    const clay = sstep(clamp01((u - (K - 2) - 0.12) / 0.62));
+    U.clay.value = clay;
+    scene.background.copy(BG_REAL).lerp(BG_CLAY, clay);
+    ledMat.color.copy(LED_REAL).lerp(LED_CLAY, clay);
+    spotMat.color.setRGB(2.2, 2.0, 1.8).lerp(LED_CLAY, clay);
+    ceilMat.opacity = 1 - clay; ceiling.visible = clay < 0.99;
+    edges.visible = clay > 0.01; edgeMat.opacity = 0.5 * clay;
+    grid.material.opacity = 0.08 * clay;
+    bloom.strength = 0.7 * (1 - clay);
+    hemi.intensity = 0.35 + 0.3 * clay;
+    sun.intensity = 1.5 + 0.5 * clay;
+    mats.forEach(m => { if (m.userData.env0 === undefined) m.userData.env0 = m.envMapIntensity; m.envMapIntensity = m.userData.env0 * (1 - 0.8 * clay); });
+    leftWall.visible = clay < 0.5;
+    areas.forEach(([l, I]) => l.intensity = I * (1 - clay));
+    pts.forEach(([l, I]) => l.intensity = I * (1 - clay));
+    walk.classList.toggle("clay", clay > 0.5);
+    if (window.__walkUI) window.__walkUI(u);
+  }
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let tPrev = performance.now();
+  function loop(now) {
+    requestAnimationFrame(loop);
+    const dt = Math.min(0.05, (now - tPrev) / 1000); tPrev = now;
+    if (!visible) return;
+    const p = window.__walkProgress();
+    pS = reduce ? p : pS + (p - pS) * (1 - Math.exp(-dt * 7));
+    if (Math.abs(p - pS) < 0.00005) pS = p;
+    if (pS !== last || dirty) { apply(pS); composer.render(); last = pS; dirty = false; }
+  }
+  resize();
+  apply(pS);
+  renderer.compile(scene, camera);
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
